@@ -1,0 +1,33 @@
+import groovy.json.JsonSlurper
+
+plugins { id 'net.fabricmc.fabric-loom-remap' version "${loom_version}" }
+
+version = project.mod_version
+group = 'dev.raz'
+base { archivesName = 'razclient' }
+
+def yarn = project.yarn_mappings
+if (yarn == 'auto') {
+    def url = "https://meta.fabricmc.net/v2/versions/yarn/${project.minecraft_version}"
+    yarn = new JsonSlurper().parseText(new URL(url).text)[0].version
+    println "Using Yarn ${yarn}"
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${yarn}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+}
+
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('fabric.mod.json') { expand 'version': project.version }
+}
+
+tasks.withType(JavaCompile).configureEach { it.options.release = 21 }
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
